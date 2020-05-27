@@ -1,0 +1,1273 @@
+$.OP.GG.forum = {
+	article: {
+		deleteSubmit: function(idx, referer){
+			if (!confirm('정말로 삭제하시겠습니까?')) return;
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/delete.json/',
+				data: {
+					idx: idx,
+					referer: referer
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						if (json['message']) {
+							alert(json['message']);
+						}
+
+						if (json['redirect']) {
+							window.location = json['redirect'];
+						}
+					}
+				}
+			});
+		},
+		voteToggle: function(button, text, idx){
+			var $vote = $(button),
+				$text = $(text);
+
+			// 사용자에게 빠른 경험을 주기위해서 먼저 액션을 취함
+			if ($vote.hasClass('Active')) {
+				$vote.removeClass("Active");
+				$text.text(Number($text.text()) - 1);
+			} else {
+				$vote.addClass("Active");
+				$text.text(Number($text.text()) + 1);
+			}
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/voteToggle.json/',
+				data: {
+					idx: idx
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						$text.text(json['score']);
+						if (json['myScore']) {
+							$vote.addClass("Active");
+						} else {
+							$vote.removeClass("Active");
+						}
+					},
+					onError: function(message){
+						alert(message);
+						if ($vote.hasClass('Active')) {
+							$vote.removeClass("Active");
+							$text.text(Number($text.text()) - 1);
+						} else {
+							$vote.addClass("Active");
+							$text.text(Number($text.text()) + 1);
+						}
+					},
+					onFinal: function(){
+					}
+				}
+			})
+		},
+		vote: function(button){
+			var $button = $(button),
+				$vote = $button.closest('.Vote'),
+				$upButton = $vote.find('button[data-vote-type=up]'),
+				$downButton = $vote.find('button[data-vote-type=down]'),
+				$voteScore = $vote.find('.Score'),
+				articleIdx = $vote.data('article-idx'),
+				upToggleEvent = function(){
+					if ($upButton.hasClass('Active')) {
+						$upButton.removeClass('Active');
+						$voteScore.text(Number($voteScore.text()) - 1);
+					} else {
+						$upButton.addClass('Active');
+						$voteScore.text(Number($voteScore.text()) + 1);
+					}
+				},
+				downToggleEvent = function(){
+					if ($downButton.hasClass('Active')) {
+						$downButton.removeClass('Active');
+						$voteScore.text(Number($voteScore.text()) + 1);
+					} else {
+						$downButton.addClass('Active');
+						$voteScore.text(Number($voteScore.text()) - 1);
+					}
+				};
+
+			$upButton.prop('disabled', true);
+			$downButton.prop('disabled', true);
+			if ($upButton.is($button)) {
+				if ($downButton.hasClass('Active')) {
+					downToggleEvent();
+				}
+				upToggleEvent();
+			} else if ($downButton.is($button)) {
+				if ($upButton.hasClass('Active')) {
+					upToggleEvent();
+				}
+				downToggleEvent();
+			}
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/voteToggle.json/',
+				data: {
+					idx: articleIdx,
+					type: $button.data('vote-type')
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						if (json.success) {
+							if (json.myScore == 0) {
+								$('.Vote[data-article-idx=' + articleIdx + '] button[data-vote-type=up]').removeClass('Active');
+								$('.Vote[data-article-idx=' + articleIdx + '] button[data-vote-type=down]').removeClass('Active');
+							} else if (json.myScore > 0) {
+								$('.Vote[data-article-idx=' + articleIdx + '] button[data-vote-type=up]').addClass('Active');
+								$('.Vote[data-article-idx=' + articleIdx + '] button[data-vote-type=down]').removeClass('Active');
+							} else if (json.myScore < 0) {
+								$('.Vote[data-article-idx=' + articleIdx + '] button[data-vote-type=up]').removeClass('Active');
+								$('.Vote[data-article-idx=' + articleIdx + '] button[data-vote-type=down]').addClass('Active');
+							}
+							$('.Vote[data-article-idx=' + articleIdx + '] .Score').text(json.score);
+							if ($button.data('is-list')) {
+								Tipped.remove('.Vote[data-article-idx=' + articleIdx + '] .Score');
+								Tipped.create('.Vote[data-article-idx=' + articleIdx + '] .Score', json.tooltip, {
+									radius: false,
+									behavior: 'hide',
+									maxWidth: 320,
+									fadeIn: 0,
+									fadeOut: 0,
+									position: 'top'
+								});
+							}
+						}
+					},
+					onError: function(message){
+						alert(message);
+						if ($upButton.is($button)) {
+							upToggleEvent();
+						} else if ($downButton.is($button)) {
+							downToggleEvent();
+						}
+					},
+					onFinal: function(){
+						$upButton.prop('disabled', false);
+						$downButton.prop('disabled', false);
+					}
+				}
+			});
+		},
+		voteEach: function(button){
+			var $button = $(button),
+				articleIdx = $button.closest('.Vote').data('article-idx'),
+				$vote = $('.Vote[data-article-idx=' + articleIdx + ']'),
+				$upButton = $vote.find('button[data-vote-type=up]'),
+				$upVoteScore = $vote.find('.Score[data-vote-type=up]'),
+				$upVote =  $upButton.closest('.Vote'),
+				$downButton = $vote.find('button[data-vote-type=down]'),
+				$downVoteScore = $vote.find('.Score[data-vote-type=down]'),
+				$downVote =  $downButton.closest('.Vote'),
+				upVoteEvent = function(){
+					if ($upVote.hasClass('Active')) {
+						$upVote.removeClass('Active');
+						$upVoteScore.text(Number($upVoteScore.text()) - 1);
+					} else {
+						$upVote.addClass('Active');
+						$upVoteScore.text(Number($upVoteScore.text()) + 1);
+					}
+				},
+				downVoteEvent = function(){
+					if ($downVote.hasClass('Active')) {
+						$downVote.removeClass('Active');
+						$downVoteScore.text(Number($downVoteScore.text()) - 1);
+					} else {
+						$downVote.addClass('Active');
+						$downVoteScore.text(Number($downVoteScore.text()) + 1);
+					}
+				};
+
+			$upButton.prop('disabled', true);
+			$downButton.prop('disabled', true);
+
+			if ($upButton.is($button)) {
+				if ($downVote.hasClass('Active')) {
+					downVoteEvent();
+				}
+				upVoteEvent();
+			} else if ($downButton.is($button)) {
+				if ($upVote.hasClass('Active')) {
+					upVoteEvent();
+				}
+				downVoteEvent();
+			}
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/voteToggle.json/',
+				data: {
+					idx: articleIdx,
+					type: $button.data('vote-type')
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						if (json.myScore == 0) {
+							$upVote.removeClass('Active');
+							$downVote.removeClass('Active');
+						} else if (json.myScore > 0) {
+							$upVote.addClass('Active');
+							$downVote.removeClass('Active');
+						} else if (json.myScore < 0) {
+							$upVote.removeClass('Active');
+							$downVote.addClass('Active');
+						}
+
+						$upVoteScore.text(json.voteUp);
+						$downVoteScore.text(json.voteDown);
+					},
+					onError: function(message){
+						alert(message);
+						if ($upButton.is($button)) {
+							upVoteEvent();
+						} else if ($downButton.is($button)) {
+							downVoteEvent();
+						}
+					},
+					onFinal: function(){
+						$upButton.prop('disabled', false);
+						$downButton.prop('disabled', false);
+					}
+				}
+			});
+		},
+		togglePreview: function(button, idx){
+			var $article = $(button).closest('.ArticleListItem'),
+				$expandButton = $article.find('.ExpandButton'),
+				$expand = $article.find('.Expand');
+
+			if ($expand.html().length > 0) {
+				$expand.html('');
+				// if ($expand.is(':visible')) {
+				// 	$expand.hide();
+				// 	var $iframe = $expand.find('iframe');
+				// 	if ($iframe) {
+				// 		$iframe.attr('src', $iframe.attr('src'));
+				// 	}
+				// } else {
+				// 	$expand.show();
+				// }
+			} else {
+				$.OP.GG.forum.article.getPreview($article, idx);
+			}
+
+			if ($expand.html().length > 0 && $expand.is(':visible')) {
+				$expandButton.addClass('Active');
+			} else {
+				$expandButton.removeClass('Active');
+			}
+		},
+		getPreview: function($article, idx){
+			var $expand = $article.find('.Expand');
+
+			$expand.startLoading({
+				maxHeight: '150'
+			});
+
+			$.OP.GG.ajax.getHTML({
+				url: '/forum/ajax/articleContent/',
+				data: {
+					idx: idx
+				},
+				callback: {
+					onHTML: function(html){
+						$expand.stopLoading();
+						$expand.html(html);
+					}, onError: function(message){
+						alert(message);
+						$expand.stopLoading();
+					},
+					onFinal: function(){
+					}
+				}
+			});
+		},
+		toggleShare: function(button){
+			var $button = $(button),
+				$shareWrap = $button.closest('.ShareWrap'),
+				_close = function(){
+					$shareWrap.find('.ShareContent').hide();
+					$button.removeClass('Active');
+					$(document).off('click', _closeEvent);
+				},
+				_closeEvent = function(event){
+					if ($(event.target).closest('.ShareWrap').length > 0) {
+						return;
+					}
+					_close();
+				};
+
+			if ($button.hasClass('Active')) {
+				_close();
+				return;
+			}
+
+			$shareWrap.find('.ShareContent').show();
+			$button.addClass('Active');
+			$(document).on('click', _closeEvent);
+		},
+		shareUrlCopy: function(button){
+			var $button = $(button),
+				url = $(button).attr('href'),
+				$url = $(button).closest('.Url');
+
+			if (window.clipboardData && window.clipboardData.setData) {
+				window.clipboardData.setData("Text", url);
+			} else {
+				var selection = window.getSelection(),
+					range = document.createRange();
+
+				range.selectNodeContents($url.find('.Text').get(0));
+				selection.removeAllRanges();
+				selection.addRange(range);
+				document.execCommand("copy");
+				selection.removeAllRanges();
+			}
+
+			if ($url.find('span').length == 0) {
+				$url.append('<span>주소가 복사되었습니다. 원하는 곳에 붙여넣기 해주세요.</span>');
+			}
+		},
+		reportOpen: function(idx){
+			$.OP.GG.util.blockBodyScroll(function(end){
+				$.OP.GG.common.dim({
+					onClose: function(){
+						end();
+					},
+					job: function(setHTML, doClose){
+						$.OP.GG.ajax.getHTML({
+							url: '/forum/report/',
+							data: {
+								idx: idx
+							},
+							callback: {
+								onHTML: function(html){
+									setHTML(html);
+								},
+								onError: function(error){
+									alert(error);
+									doClose();
+								}
+							}
+						});
+					}
+				});
+			});
+		},
+		reportSubmit: function(form){
+			$.OP.GG.ajax.formSubmit(form, 'json', {
+				onJSON: function(json){
+					if (json['message']) {
+						alert(json['message']);
+					}
+					$(form).closest('.DimmedBlockInner').find('.Close').click();
+				},
+				onError: function(error){
+					alert(error);
+				}
+			});
+		},
+		write: {
+			isWriteRequesting: false,
+			changeCategories: function(event, isModify){
+				var $input = $(event.target),
+					$writeEditor = $('.ForumWriteEditor'),
+					$writeLink = $('.ForumWriteLink'),
+					$writePreview = $('.ForumWritePreview'),
+					$writeImage = $('.ForumWriteImage'),
+					$writeText = $('.ForumWriteText'),
+					$inputTitle = $('.ForumWriteTitle input[name=title]'),
+					$inputLink = $('.ForumWriteLink').find('input[name=link]'),
+                    $submitBtn = $('.SubmitButton'),
+                	$category = $('select[name=categoryIdx]'),
+                    $inputContent = $('textarea[name=content]');
+
+				if (!isModify) {
+					$inputLink.val('');
+					$writeLink.removeClass('Active');
+					$('.ForumWritePreviewBox').remove();
+					$.OP.GG.forum.article.write.link._lastUrl = null;
+
+                    if($category.val() == '3' || $category.val() == '31' || $category.val() == '32') {
+                        //자유, 이스포츠, 유머
+                        if($inputTitle.val() && $inputContent.val()) {
+                            $submitBtn.prop('disabled', false);
+                        } else {
+                            $submitBtn.prop('disabled', true);
+                        }
+                    } else if($category.val() == '2' || $category.val() == '1') {
+                        //정보
+                        if($inputTitle.val() && $inputContent.val() && $inputLink.val()) {
+                            $submitBtn.prop('disabled', false);
+                        } else {
+                            $submitBtn.prop('disabled', true);
+                        }
+                    } else {
+                        if($inputTitle.val() && $inputContent.val()) {
+                            $submitBtn.prop('disabled', false);
+                        } else {
+                            $submitBtn.prop('disabled', true);
+                        }
+                    }
+
+				} else {
+					$inputLink.trigger('change');
+				}
+
+				switch ($input.data('key') ? $input.data('key') : $input.find('option:selected').data('key')) {
+					case 'free':
+						$writeEditor.show();
+						$writeLink.hide();
+						$writePreview.hide();
+						$writeImage.show();
+						$writeText.hide();
+						$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+						break;
+
+					case 'info':
+					case 'humor':
+						$writeEditor.show();
+						$writeLink.show();
+						$writePreview.hide();
+						$writeImage.show();
+						$writeText.hide();
+						$inputLink.attr('placeholder', $inputLink.data('placeholder'));
+						$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+						break;
+
+					case 'video':
+						$writeEditor.hide();
+						$writeLink.show();
+						$writeImage.hide();
+						$writeText.show();
+						$inputLink.attr('placeholder', $inputLink.data('video-placeholder'));
+						$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+						$writePreview.show();
+						break;
+
+					case 'plus':
+						$writeEditor.show();
+						$writeLink.show();
+						$writePreview.show();
+						$writeText.hide();
+						$writeImage.hide();
+						$inputLink.attr('placeholder', $inputLink.data('placeholder'));
+						$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+						break;
+
+					default:
+						$writeEditor.show();
+						$writeLink.show();
+						$writePreview.hide();
+						$writeImage.show();
+						$writeText.hide();
+						$inputLink.attr('placeholder', $inputLink.data('placeholder'));
+						$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+						break;
+				}
+			},
+			submit: function(form, callback, isForce){
+				if (typeof(isForce) == 'undefined') isForce = false;
+				if ($.OP.GG.forum.article.write.isWriteRequesting && !isForce) return;
+
+				$.OP.GG.forum.article.write.isWriteRequesting = true;
+
+				$(form).find('.ForumWriteSubmit .Button').startLoading({maxHeight: 16});
+				$.OP.GG.ajax.formSubmit(form, 'json', {
+					onJSON: function(json){
+						if (json['success']) {
+							callback && callback();
+							if (json['redirect']) {
+								window.location = json['redirect'];
+							}
+						} else {
+							if (json['isLinkDuplicated']) {
+								if (confirm('동일한 링크가 이미 등록되어있습니다.\r\n그래도 등록하시겠습니까?')) {
+									$(form).append("<input type='hidden' name='confirmLinkDuplicated' value='true'>");
+									$.OP.GG.forum.article.write.submit(form, callback, true);
+									return;
+								}
+							} else {
+								alert('Unknown error!');
+							}
+
+							$(form).find('.ForumWriteSubmit .Button').stopLoading();
+						}
+					},
+					onError: function(msg){
+						alert(msg);
+						$(form).find('.ForumWriteSubmit .Button').stopLoading();
+					},
+					onFinal: function(){
+						$.OP.GG.forum.article.write.isWriteRequesting = false;
+
+					}
+				});
+			},
+			link: {
+				_lastUrl: null,
+				requestThumbnail: function(){
+					var lastUrl = $.OP.GG.forum.article.write.link._lastUrl,
+						$link = $('input[name=link]'),
+						value = $.trim($link.val()),
+						$inputTitle = $('.ForumWriteTitle input[name=title]'),
+						$forumWritePreview = $('.ForumWritePreview');
+
+					$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+					if (value) {
+						if ($forumWritePreview.find('.ForumWritePreviewBox').length == 0) {
+							$('<div/>').attr('class', 'ForumWritePreviewBox')
+								.prependTo($forumWritePreview);
+						}
+
+						$('.ForumWritePreviewBox').startLoading({className: 'black', minHeight: 90});
+
+						if (lastUrl != value) {
+							lastUrl = value;
+
+							$.OP.GG.ajax.getJSON({
+								url: '/forum/ajax/linkContent.json/',
+								method: 'post',
+								data: {
+									link: value,
+									categoryIdx: $("input[name='categoryIdx'], select[name='categoryIdx']").val()
+								},
+								callback: {
+									onJSON: function(json){
+										if (lastUrl != value)
+											return;
+										$('.ForumWriteTitle input[name=title]').attr('placeholder', json.title);
+										$('.ForumWritePreviewBox').html(
+											'<a href="' + json.link + '" target="_blank">' +
+											'<div class="Thumbnail">' +
+											'<img src="' + json.thumbnailImageUrl + '">' +
+											'</div>' +
+											'<div class="PreviewEntry">' +
+											'<div class="Title">' + json.title + '</div>' +
+											'<div class="Source">' + json.platform + '</div>' +
+											'</div>' +
+											'</a>');
+									},
+									onError: function(json){
+										$('.ForumWritePreviewBox').remove();
+									}
+								}
+							});
+						}
+					}
+				},
+				requestThumbnailMobile: function(){
+					var lastUrl = $.OP.GG.forum.article.write.link._lastUrl,
+						$link = $('input[name=link]'),
+						value = $.trim($link.val()),
+						$inputTitle = $('.ForumWriteTitle input[name=title]'),
+						$forumWritePreview = $('.ForumWritePreview'),
+						currentCategory = $("input[name='categoryIdx'], select[name='categoryIdx']").val();
+
+					$inputTitle.attr('placeholder', $inputTitle.data('placeholder'));
+					if (value) {
+						if ($forumWritePreview.find('.ForumWritePreviewBox').length == 0) {
+							$('<div/>').attr('class', 'ForumWritePreviewBox')
+								.prependTo($forumWritePreview);
+						}
+
+						if (lastUrl != value) {
+							$.OP.GG.forum.article.write.link._lastUrl = lastUrl = value;
+
+							$('.ForumWriteLink').removeClass('Active').addClass('Load');
+							$('select[name=categoryIdx]').attr('disabled', 'disabled');
+							$.OP.GG.ajax.getJSON({
+								url: '/forum/ajax/linkContent.json/',
+								method: 'post',
+								data: {
+									link: value,
+									categoryIdx: currentCategory
+								},
+								callback: {
+									onJSON: function(json){
+										if (lastUrl != value) {
+											return;
+										}
+
+										$('.ForumWriteTitle input[name=title]').attr('placeholder', json.title);
+										$('.ForumWritePreviewBox').html(
+											'<a href="' + json.link + '" target="_blank">' +
+											'<div class="Thumbnail">' +
+											'<img src="' + json.thumbnailImageUrl + '">' +
+											'</div>' +
+											'<div class="PreviewEntry">' +
+											'<div class="Title">' + json.title + '</div>' +
+											'<div class="Source">' + json.platform + '</div>' +
+											'</div>' +
+											'</a>');
+										$('.ForumWriteLink').removeClass('Load').addClass('Active');
+									},
+									onError: function(error){
+										alert(error);
+										$('.ForumWritePreviewBox').remove();
+										$('.ForumWriteLink').removeClass('Load');
+									},
+									onFinal: function(){
+										$('select[name=categoryIdx]').attr('disabled', false);
+									}
+								}
+							});
+						}
+					} else {
+						$('.ForumWritePreviewBox').remove();
+						$('.ForumWriteLink').removeClass('Load');
+						$.OP.GG.forum.article.write.link._lastUrl = null;
+					}
+				}
+			}
+		},
+		save: {
+			submit: function(btn){
+				if ($.OP.GG.forum.article.write.isWriteRequesting) return;
+
+				var $btn = $(btn);
+				var $form = $btn.closest("form");
+				var $text = $form.find("textarea[name='text']");
+				var $articleSaveIdx = $form.find("input[name='articleSaveIdx']");
+
+				var articleSaveIdx = $articleSaveIdx.val();
+				var title = $.trim($form.find("input[name='title']").val());
+				var content = $.trim($text.is(":visible") ? $text.val() : CKEDITOR.instances.content.getData());
+
+				if (title.length == 0 && content.length == 0) return;
+
+				$.OP.GG.ajax.getJSON({
+					url: '/forum/ajax/saveArticle.json/',
+					method: 'post',
+					data: {
+						idx: articleSaveIdx,
+						title: title,
+						content: content
+					},
+					callback: {
+						onJSON: function(json){
+							$articleSaveIdx.val(json['articleSaveIdx']);
+
+							var $message = $('<div/>').appendTo('body').addClass('ForumArticleAutoSaveMessage').text('임시저장이 완료되었습니다.');
+							setTimeout(function(){
+								$message.fadeOut('fast');
+							}, 3000);
+
+							$form.find(".SaveButtonWrap .State").text("(" + json['savedArticleCount'] + ")");
+						}
+					}
+				})
+			},
+			articles: function(btn){
+				var $btn = $(btn);
+				var $form = $btn.closest("form");
+
+				var _closeEvent = function(event){
+					if (event && $(event.target).closest('.ForumWriteAutoSaveWrap').length > 0) {
+						return false;
+					}
+
+					$form.find('.ForumWriteAutoSaveWrap').remove();
+					$(document).off('click', _closeEvent);
+				};
+
+				if ($form.find('.ForumWriteAutoSaveWrap').length > 0) {
+					_closeEvent();
+					return;
+				}
+
+				$.OP.GG.ajax.getJSON({
+					url: '/forum/ajax/savedArticles.json/',
+					callback: {
+						onJSON: function(json){
+							$form.find(".SaveButtonWrap .State").text("(" + json['savedArticleCount'] + ")");
+							$form.find(".SaveButtonWrap").append(json['html']);
+							$(document).on('click', _closeEvent);
+						}
+					}
+				});
+			},
+			deleteSubmit: function(btn){
+				if (!confirm("정말로 삭제하시겠습니까?")) return;
+
+				var $btn = $(btn);
+				var $li = $btn.closest('li');
+				var $form = $btn.closest("form");
+				var $wrapper = $form.find(".ForumWriteAutoSaveWrap");
+
+				var idx = $li.data("idx");
+				$.OP.GG.ajax.getJSON({
+					url: '/forum/ajax/deleteSavedArticle.json/',
+					method: 'post',
+					data: {
+						idx: idx
+					},
+					callback: {
+						onJSON: function(json){
+							$form.find(".SaveButtonWrap .State").text("(" + json['savedArticleCount'] + ")");
+							$wrapper.find(".ForumWriteAutoSaveHeader h4 b").text("(" + json['savedArticleCount'] + ")");
+
+							if (json['savedArticleCount'] > 0) {
+								$li.remove();
+							} else {
+								$wrapper.find(".ForumWriteAutoSaveContent").remove();
+							}
+						}
+					}
+				});
+			},
+			deleteAll: function(btn){
+				if (!confirm("정말로 전체삭제하시겠습니까?")) return;
+
+				var $btn = $(btn);
+				var $form = $btn.closest("form");
+				var $wrapper = $form.find(".ForumWriteAutoSaveWrap");
+
+				$.OP.GG.ajax.getJSON({
+					url: '/forum/ajax/deleteSavedArticleAll.json/',
+					callback: {
+						onJSON: function(json){
+							$form.find(".SaveButtonWrap .State").text("(0)");
+							$wrapper.find(".ForumWriteAutoSaveHeader h4 b").text("(0)");
+							$wrapper.find(".ForumWriteAutoSaveContent").remove();
+						}
+					}
+				})
+			},
+			load: function(btn){
+				if (!confirm("정말로 불러오시겠습니까?")) return;
+
+				var $btn = $(btn);
+				var $li = $btn.closest('li');
+				var $form = $btn.closest("form");
+				var $articleSaveIdx = $form.find("input[name='articleSaveIdx']");
+
+				var idx = $li.data("idx");
+
+				$.OP.GG.ajax.getJSON({
+					url: '/forum/ajax/savedArticle.json/idx=' + idx,
+					callback: {
+						onJSON: function(json){
+							$articleSaveIdx.val(json['idx']);
+
+							$form.find("input[name='title']").val(json['title']);
+							var $text = $form.find("textarea[name='text']");
+
+							if ($text.is(":visible")) {
+								$text.val(json['content']);
+							} else {
+								CKEDITOR.instances.content.setData(json['content']);
+							}
+
+							$form.find(".ForumWriteAutoSaveWrap").remove();
+						}
+					}
+				});
+			}
+		}
+	},
+	comment: {
+		deleteSubmit: function(idx){
+			if (!confirm('정말로 삭제하시겠습니까?')) return;
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/deleteComment.json/',
+				data: {
+					idx: idx
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						if (json['message']) {
+							alert(json['message']);
+						}
+
+						if (json['redirect']) {
+							window.location = json['redirect'];
+						}
+
+						var $comment = $('li[data-comment-idx=' + idx + ']');
+						$comment.find("p").addClass("Deleted").text("삭제된 댓글입니다.");
+						$comment.find(".Buttons li").eq(1).remove();
+						$comment.find(".Edit li").remove();
+						// $('li[data-parent-comment-idx=' + idx + ']').find(".Edit").remove();
+					}
+				}
+			})
+		},
+		submit: function(form, callback){
+			var $form = $(form),
+				$submitButton = $(form).find('button'),
+				data = $form.serializeArray(),
+				action = $form.attr('action'),
+				targetAccountIdx = $form.find('textarea').data('target-account-idx'),
+				dataObject = {},
+				commentCallback = callback;
+
+			$.each(data, function(i, item){
+				if (dataObject[item.name]) {
+					if (typeof(dataObject[item.name]) === "string") {
+						dataObject[item.name] = [dataObject[item.name]];
+					}
+					dataObject[item.name].push(item.value);
+				} else {
+					dataObject[item.name] = item.value;
+				}
+			});
+
+			if (targetAccountIdx) {
+				if (dataObject.content) {
+					dataObject.content = '{{::' + targetAccountIdx + '::}} ' + dataObject.content;
+				}
+			}
+
+			$submitButton.startLoading({
+				maxHeight: '30'
+			});
+
+			$.OP.GG.ajax.getJSON({
+				url: action,
+				method: 'post',
+				data: dataObject,
+				callback: {
+					onJSON: function(json){
+						var idx = json['idx'];
+						var callback = function(){
+							$('body').animate({
+								scrollTop: $('.ForumCommentList li[data-comment-idx="' + idx + '"]').offset().top
+							}, 300);
+						};
+
+						var formValues = {};
+						$.each($form.serializeArray(), function(i, field){
+							formValues[field.name] = field.value;
+						});
+						$form.find('textarea').val('');
+
+						if (typeof(formValues.parentIdx) == 'undefined' || formValues.parentIdx == 0) {
+							$.OP.GG.forum.comment.loadByOrderType('recent', true);
+						} else {
+							$.OP.GG.forum.comment.load(formValues.articleIdx, formValues.parentIdx, callback);
+						}
+						commentCallback && commentCallback('Success');
+					},
+					onError: function(message){
+						alert(message);
+						commentCallback && commentCallback('Fail');
+					},
+					onFinal: function(){
+						$submitButton.stopLoading();
+					}
+				}
+			});
+			if ($form.find('input[name=parentIdx]')) {
+			}
+		},
+		voteToggle: function(button, text, idx){
+			var $vote = $(button),
+				$text = $(text);
+
+			if ($vote.hasClass('Active')) {
+				$vote.removeClass("Active");
+				$text.text(Number($text.text()) - 1);
+			} else {
+				$vote.addClass("Active");
+				$text.text(Number($text.text()) + 1);
+			}
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/voteToggleComment.json/',
+				data: {
+					idx: idx
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						$text.text(json['score']);
+						if (json['myScore']) {
+							$vote.addClass("Active");
+						} else {
+							$vote.removeClass("Active");
+						}
+					},
+					onFinal: function(){
+					},
+					onError: function(message){
+						alert(message);
+						if ($vote.hasClass('Active')) {
+							$vote.removeClass("Active");
+							$text.text(Number($text.text()) - 1);
+						} else {
+							$vote.addClass("Active");
+							$text.text(Number($text.text()) + 1);
+						}
+					}
+				}
+			})
+		},
+		vote: function(button){
+			var $button = $(button),
+				$vote = $button.closest('.Vote'),
+				$upButton = $vote.find('button[data-vote-type=up]'),
+				$downButton = $vote.find('button[data-vote-type=down]'),
+				$voteScore = $vote.find('.Score'),
+				commentIdx = $button.data('comment-idx'),
+				upToggleEvent = function(){
+					if ($upButton.hasClass('Active')) {
+						$upButton.removeClass('Active');
+						$voteScore.text(Number($voteScore.text()) - 1);
+					} else {
+						$upButton.addClass('Active');
+						$voteScore.text(Number($voteScore.text()) + 1);
+					}
+				},
+				downToggleEvent = function(){
+					if ($downButton.hasClass('Active')) {
+						$downButton.removeClass('Active');
+						$voteScore.text(Number($voteScore.text()) + 1);
+					} else {
+						$downButton.addClass('Active');
+						$voteScore.text(Number($voteScore.text()) - 1);
+					}
+				};
+
+
+			if ($upButton.is($button)) {
+				if ($downButton.hasClass('Active')) {
+					downToggleEvent();
+				}
+				upToggleEvent();
+			} else if ($downButton.is($button)) {
+				if ($upButton.hasClass('Active')) {
+					upToggleEvent();
+				}
+				downToggleEvent();
+			}
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/voteToggleComment.json/',
+				data: {
+					idx: $button.data('comment-idx'),
+					type: $button.data('vote-type')
+				},
+				method: 'post',
+				callback: {
+					onJSON: function(json){
+						if (json.success) {
+							if (json.myScore == 0) {
+								$('li[data-comment-idx=' + commentIdx + '] button[data-vote-type=up]').removeClass('Active');
+								$('li[data-comment-idx=' + commentIdx + '] button[data-vote-type=down]').removeClass('Active');
+							} else if (json.myScore > 0) {
+								$('li[data-comment-idx=' + commentIdx + '] button[data-vote-type=up]').addClass('Active');
+								$('li[data-comment-idx=' + commentIdx + '] button[data-vote-type=down]').removeClass('Active');
+							} else if (json.myScore < 0) {
+								$('li[data-comment-idx=' + commentIdx + '] button[data-vote-type=up]').removeClass('Active');
+								$('li[data-comment-idx=' + commentIdx + '] button[data-vote-type=down]').addClass('Active');
+							}
+							$('li[data-comment-idx=' + commentIdx + '] .Score').text(json.score);
+						}
+					},
+					onError: function(message){
+						alert(message);
+						if ($upButton.is($button)) {
+							upToggleEvent();
+						} else if ($downButton.is($button)) {
+							downToggleEvent();
+						}
+					}
+				}
+			});
+		},
+		loadMore: function(e, articleIdx, parentIdx, start, order){
+			if (typeof(order) == 'undefined') order = '';
+
+			var $e = $(e);
+			if ($e.attr('disabled')) return;
+
+			$e.startLoading({className: 'black'});
+			$e.attr('disabled', true);
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/comments.json/articleIdx=' + articleIdx + '&parentIdx=' + parentIdx + '&start=' + start + "&order=" + order,
+				type: 'json',
+				callback: {
+					onJSON: function(json){
+						$(json['html']).insertBefore($e);
+						$e.remove();
+					},
+					onError: function(){
+						$e.stopLoading();
+						$e.attr('disabled', false);
+					}
+				}
+			})
+		},
+		loadByOrderType: function(orderType, isForce){
+			if (typeof(isForce) == 'undefined') isForce = false;
+
+			var $orderTypes = $(".ForumCommentTab .OrderType");
+
+			if (!isForce) {
+				if ($orderTypes.find(".Active").data("ordertype") == orderType) return;
+			}
+
+			$orderTypes.find("dd").removeClass("Active");
+			$orderTypes.find("dd[data-ordertype='" + orderType + "']").addClass("Active");
+
+			var $commentList = $(".ForumCommentList");
+			var $e = $('<button class="CommentListMoreButton" onclick="$.OP.GG.forum.comment.loadMore(this, ' + $commentList.data('article-idx') + ', 0, 0, \'' + orderType + '\');">댓글 보기</button>');
+			$commentList.html($e);
+			$e.click();
+		},
+		loadRefresh: function(button){
+			var $button = $(button);
+
+			$.OP.GG.forum.comment.loadByOrderType($('.ForumCommentTab .OrderType').find('.Active').data('ordertype'), true);
+			$button.attr('disabled', 'disabled').delay(3000).queue(function(next){
+				$(this).attr('disabled', false);
+				next();
+			});
+			return false;
+		},
+		load: function(articleIdx, parentIdx, callback){
+			var $list = $('.ForumCommentList');
+
+			$.OP.GG.ajax.getJSON({
+				url: '/forum/ajax/comments.json/articleIdx=' + articleIdx + (parentIdx ? '&parentIdx=' + parentIdx : ''),
+				type: 'json',
+				callback: {
+					onJSON: function(json){
+						if (parentIdx == undefined) {
+							$list.html(json['html']);
+						} else {
+							$list.find('.Reply[data-parent-comment-idx=' + parentIdx + ']').each(function(){
+								$(this).next('.Write').remove();
+								$(this).remove();
+							});
+
+							$list.find('.Write[data-comment-idx=' + parentIdx + ']').after(json['html']);
+							$.OP.GG.forum.comment.replyWrite.hide(parentIdx);
+						}
+
+						if (callback) {
+							callback();
+						}
+					},
+					onError: function(){
+					}
+				}
+			})
+		},
+		replyWrite: {
+			show: function(commentIdx){
+				$('.ForumCommentList')
+					.children('li')
+					// .removeClass('Active')
+					.each(function(i, listItem){
+						var $listItem = $(listItem),
+							isCurrentCommentIdx = ($listItem.data('comment-idx') == commentIdx),
+							hasWrite = $listItem.hasClass('Write');
+						if (hasWrite && isCurrentCommentIdx) {
+							$listItem.show();
+						} else if (hasWrite) {
+							$listItem.hide();
+						} else if (isCurrentCommentIdx) {
+							$listItem.find('.ReplyButton').addClass('Active');
+						} else {
+							$listItem.find('.ReplyButton').removeClass('Active');
+						}
+
+					});
+			},
+			hide: function(commentIdx){
+				$('.Write[data-comment-idx=' + commentIdx + ']').hide();
+				$('li[data-comment-idx=' + commentIdx + ']').find('.ReplyButton').removeClass('Active');
+			},
+			toggle: function(commentIdx){
+				var $write = $('.Write[data-comment-idx=' + commentIdx + ']');
+				if ($write.is(':visible')) {
+					$.OP.GG.forum.comment.replyWrite.hide(commentIdx);
+				} else {
+					$.OP.GG.forum.comment.replyWrite.show(commentIdx);
+				}
+			}
+		},
+		reportOpen: function(idx){
+			$.OP.GG.util.blockBodyScroll(function(end){
+				$.OP.GG.common.dim({
+					onClose: function(){
+						end();
+					},
+					job: function(setHTML, doClose){
+						$.OP.GG.ajax.getHTML({
+							url: '/forum/reportComment/',
+							data: {
+								idx: idx
+							},
+							callback: {
+								onHTML: function(html){
+									setHTML(html);
+								},
+								onError: function(error){
+									alert(error);
+									doClose();
+								}
+							}
+						});
+					}
+				});
+			});
+		},
+		reportSubmit: function(form){
+			$.OP.GG.ajax.formSubmit(form, 'json', {
+				onJSON: function(json){
+					if (json['message']) {
+						alert(json['message']);
+					}
+				},
+				onError: function(error){
+					alert(error);
+				},
+				onFinal: function(){
+					$(form).closest('.DimmedBlockInner').find('.Close').click();
+				}
+			});
+		}
+	},
+	mobile: {
+		toggleSearchForm: function(button){
+			var $button = $(button),
+				$forumHeaderSearchContent = $('.ForumHeaderSearchContent'),
+                $header = $('.layout__header'),
+                $menu = $('.layout__menu'),
+                $searchInput = $forumHeaderSearchContent.find('input[type=text]');
+
+			$button.toggleClass('Active');
+
+			if ($button.hasClass('Active')) {
+				$forumHeaderSearchContent.show();
+				$header.hide();
+				$menu.hide();
+				$searchInput.focus();
+			} else {
+				$forumHeaderSearchContent.hide();
+				$header.show();
+				$menu.show();
+			}
+		},
+		openShare: function(){
+			$.OP.GG.util.blockBodyScroll(function(end){
+				$.OP.GG.common.dim({
+					className: 'Forum',
+					onClose: function(){
+						end();
+					},
+					job: function(setHTML, doClose){
+						setHTML($('#ArticleShare').html());
+					}
+				});
+			});
+		},
+		openEdit: function(){
+			$.OP.GG.util.blockBodyScroll(function(end){
+				$.OP.GG.common.dim({
+					className: 'Forum',
+					onClose: function(){
+						end();
+					},
+					job: function(setHTML, doClose){
+						setHTML($('#ArticleEdit').html());
+					}
+				});
+			});
+		}
+	},
+	mobileList: {
+		top: null,
+		changed: false,
+		currentUrl: null,
+		loadMore: function(button){
+			var $button = $(button),
+				nextUrl = $button.data('next-url');
+
+			$button.startLoading({
+				className: 'black',
+				minHeight: '50'
+			});
+
+			$.OP.GG.ajax.getHTML({
+				url: nextUrl,
+				callback: {
+					onHTML: function(html){
+						$(html).find('.ForumArticleList').data('url', nextUrl);
+						$button.replaceWith(html);
+						// $.OP.GG.forum.mobileList.loadSection();
+					},
+					onError: function(error){
+						alert(error);
+						$button.stopLoading();
+					}
+				}
+			});
+		},
+		init: function(){
+			// $(window).scroll($.OP.GG.forum.mobileList.scrollCheck);
+			// $.OP.GG.forum.mobileList.loadSection();
+			// setTimeout($.OP.GG.forum.mobileList.changeCheck, 200);
+		},
+		changeCheck: function(){
+			var mobileList = $.OP.GG.forum.mobileList;
+			if (!mobileList.changed) {
+				return setTimeout(mobileList.changeCheck, 200);
+			}
+			var count = mobileList.section.length,
+				p;
+
+			while (p = mobileList.section[--count]) {
+				if (p.top >= mobileList.top || p.bottom <= mobileList.top) {
+					continue;
+				}
+
+				if (mobileList.currentUrl == p.url) {
+					break;
+				}
+
+				var scrollTop = $(document).scrollTop();
+
+				if (window.history.pushState) {
+					window.history.pushState({}, null, mobileList.currentUrl = p.url);
+				}
+
+				$(document).scrollTop(scrollTop);
+			}
+			setTimeout(mobileList.changeCheck, 200);
+		},
+		scrollCheck: function(){
+			var mobileList = $.OP.GG.forum.mobileList;
+			var newTop = $(document).scrollTop();
+
+			mobileList.changed = newTop != mobileList.top;
+			if (mobileList.changed) {
+				mobileList.top = newTop;
+			}
+		},
+		loadSection: function(){
+			$.OP.GG.forum.mobileList.section = $.map($(".ForumArticleList"), function(ForumArticleList){
+				console.log(ForumArticleList);
+				var $ForumArticleList = $(ForumArticleList),
+					pos = $ForumArticleList.position();
+				return {
+					top: pos.top,
+					bottom: pos.top + $ForumArticleList.height(),
+					url: $ForumArticleList.data('url')
+				};
+			});
+		}
+	}
+};

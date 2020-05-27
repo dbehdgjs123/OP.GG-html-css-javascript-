@@ -1,0 +1,502 @@
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "맑은 고딕", "Malgun Gothic", Gothic, sans--serif; /*전체 초기화*/
+}
+
+li {
+  float: left;
+  list-style: none;
+}
+body,
+html {
+  margin: 0;
+  height: 100%;
+}
+#page {
+  background: #5383e8;
+  overflow: hidden;
+  position: relative;
+  min-width: 1080px; /*최소 넓이를 지정하여 1080아래로 내려가면 over*/
+  min-height: 100%;
+}
+#page_background {
+  position: absolute; /*별개의 position으로 주어야 다른 요소들이 이 요소에게 밀리지 않음*/
+  margin-top: 130px;
+  height: 100%;
+  width: 100%;
+}
+
+#main-header {
+  height: 40px;
+}
+
+#main-menu {
+  height: 48px;
+  border-bottom: 1px solid #4171d6;
+}
+#main-nav {
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+#content {
+  width: 1080px;
+  min-height: 700px;
+  margin: 0 auto;
+  position: relative;
+  padding-bottom: 140px;
+}
+#main-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 40px 0px;
+}
+.main-footer_box {
+  width: 1080px;
+  margin: 0 auto;
+}
+.footer_nav {
+  display: flex;
+  margin-bottom: 10px;
+}
+.footer_nav_item {
+  margin-right: 15px;
+}
+.footer_nav_item > a {
+  color: white;
+  font-size: 12px;
+  text-decoration: none;
+}
+.footer_nav_item > a:hover {
+  border-bottom: 1px solid white;
+}
+.footer_main {
+  font-size: 10px;
+  color: white;
+}
+.footer_sns {
+  float: right;
+}
+.footer_sns_item {
+  font-size: 0px;
+  width: 16px;
+  height: 16px;
+  margin-left: 10px;
+}
+#lolBtn {
+  margin-right: 60px;
+  margin-left: 5px;
+  padding-left: 10px;
+  background-color: rgba(255, 255, 255, 0);
+  border: 0;
+  outline: 0;
+}
+#langBtn {
+  margin: 0 10px;
+  background-color: rgba(255, 255, 255, 0);
+  color: #c5cbd0;
+  border: 0;
+  outline: 0;
+}
+#login {
+  background-color: #5383e8;
+  width: 68px;
+  border-radius: 4px;
+  text-align: center;
+  height: 26px;
+}
+#login > a {
+  font-size: 12px;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 auto;
+  text-align: left;
+}
+#main-nav > a {
+  color: white;
+  font-size: 12px;
+  text-decoration: none;
+  display: block;
+  line-height: 40px;
+  margin: 0 auto;
+  width: 1080px;
+}
+#main-nav > a:hover {
+  text-decoration: underline;
+}
+.OpggLogo {
+  width: 98px;
+  background: #5383e8;
+}
+
+.OpggLogo_title > a {
+  display: block;
+  width: 65px;
+  height: 16px;
+  margin: 3px 15px;
+  color: white;
+  font-weight: bold;
+  font-size: 23px;
+  text-decoration: none;
+}
+.heaer-item {
+  background-color: #232f46;
+  display: flex;
+  overflow: hidden;
+  height: 40px;
+}
+.lolText {
+  position: relative;
+  font-size: small;
+  bottom: 4px;
+  color: #c5cbd0;
+}
+.bannerimg {
+  width: 300px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.bannerimg > img {
+  margin: auto;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 20px;
+}
+.inMenu {
+  list-style: none;
+  display: block;
+  margin: 0 auto;
+  max-width: 1300px;
+}
+.menu-item {
+  margin-left: 24px;
+  display: block;
+  height: 48px;
+}
+.menu-item > a {
+  font-size: 15px;
+  line-height: 48px;
+  color: #b3cdff;
+  text-decoration: none;
+  outline: none;
+  display: inline-block;
+  height: 45px;
+}
+.menu-item > a:hover {
+  border-bottom: 3px solid white;
+  color: white;
+}
+.menu-item-urfe > a {
+  color: #00fede;
+}
+.menu-item-active {
+  height: 45px;
+  border-bottom: 3px solid white;
+}
+.menu-item-active > a {
+  font-size: 15px;
+  line-height: 48px;
+  text-decoration: none;
+  outline: none;
+  color: white;
+}
+#logo {
+  margin: 32px 0px 24px;
+}
+
+#logo > img {
+  display: block;
+  margin: 0 auto;
+  max-height: 200px;
+}
+#search {
+}
+.searchbar {
+  width: 624px;
+  height: 49.8px;
+  margin: 0 auto;
+  position: relative;
+}
+input[type="text"] {
+  width: 100%;
+  height: 100%;
+  border: none;
+  box-sizing: border-box;
+  padding: 15px 150px 18px 17px;
+  display: block;
+  outline: none;
+  margin: 0;
+  border-radius: 2px;
+  font-size: 14px;
+}
+input[type="submit"] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 10px 10px 0 0;
+  background-color: rgb(58, 183, 255);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 2px;
+}
+.Searh_lang_btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  right: 70px;
+  margin: 12px 10px 0px 0px;
+}
+.Searh_lang_btn_KR {
+  background: #788185;
+  color: white;
+  padding: 1px 7px 2px 8px;
+  font-size: 11px;
+  margin-right: 7px;
+}
+.Searh_lang_btn_background {
+  border: none;
+  outline: none;
+  background-color: white;
+}
+.Searh_lang_btn_text {
+  color: #949ca0;
+  font-size: x-small;
+}
+#googleAds {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+#googleAds > img {
+  margin: 0 auto;
+  display: block;
+  border: solid 1px white;
+}
+#talk {
+  margin-top: 35px;
+  min-height: 396px;
+  background: #fff;
+  border: solid 1px #e9eff4;
+}
+
+.talk_head > a {
+  background-color: white;
+  display: block;
+  padding: 17px 0 16px 20px;
+  line-height: 17px;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  color: black;
+}
+.talk_head {
+  border: solid 1px #e9eff4;
+}
+.talk_left {
+  width: 50%;
+  float: left;
+}
+.talk_right {
+  width: 50%;
+  float: left;
+}
+.talk_left_article_item_img > img {
+  width: 100px;
+  height: 59px;
+  margin-top: 5px;
+}
+.talk_left_article {
+  width: 100%;
+  border-top: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+}
+.talk_left_article > a {
+  display: flex;
+  text-decoration: none;
+}
+.talk_left_article:hover {
+  background-color: #f0f0f0;
+}
+.talk_left_article_item_main {
+  font-size: 14px;
+  color: black;
+  margin-left: 20px;
+  margin-top: 10px;
+}
+.talk_left_article_item_sub {
+  font-size: small;
+  color: #879292;
+  white-space: wrap;
+}
+.talk_left_article_item_order {
+  font-size: 20px;
+  margin-top: 20px;
+  margin-left: 20px;
+  margin-right: 25px;
+  font-style: italic;
+  max-width: 11.09px;
+}
+.talk_left_article_item_sub {
+  position: absolute;
+  display: flex;
+  white-space: wrap;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.talk_left_article_item_sub_name {
+  margin-left: 14px;
+}
+.talk_left_article_item_order_10 {
+  font-size: 20px;
+  margin-top: 20px;
+  margin-left: 20px;
+  margin-right: 25px;
+  position: relative;
+  right: 4px;
+  font-style: italic;
+  max-width: 11.09px;
+}
+.talk_left_article_item_order_green {
+  color: #1ab80c;
+}
+.talk_left_article_item_main_hits {
+  color: #0475b8;
+  font-weight: 3em;
+}
+.bannerimg {
+  display: flex;
+  flex-direction: column;
+}
+.bannerimg_expand {
+  position: absolute;
+  z-index: 1;
+  margin-top: 40px;
+  display: none;
+}
+.bannerimg_expand > img {
+  border: 10px solid #232f46;
+}
+.search_user {
+  width: 624px;
+  height: 155px;
+  margin: 0 auto;
+  position: relative;
+  display: none;
+}
+.search_user_head {
+  height: 40px;
+  background-color: white;
+  border-top: solid 1px #e9eff4;
+}
+.search_user_latest {
+  width: 50%;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 14px;
+}
+.search_user_latest > a {
+  text-decoration: none;
+  color: #4a4a4a4a;
+}
+.search_user_bookmark {
+  width: 50%;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  background: #e3e3e3;
+  color: #9c9c9c;
+  font-size: 14px;
+}
+.search_user_bookmark > a {
+  text-decoration: none;
+  color: #4a4a4a4a;
+}
+
+#search_user_body_latest {
+  height: 115px;
+  padding-top: 5px;
+  padding-left: 10px;
+  display: block;
+  position: relative;
+}
+#search_user_body_bookmark {
+  width: 100%;
+  background-color: white;
+  display: none;
+  position: absolute;
+  height: 56px;
+  text-align: center;
+  line-height: 56px;
+  font-size: 12px;
+  color: #666;
+}
+.search_user_item {
+  width: 33.3%;
+  height: 30px;
+  font-size: 12px;
+  display: flex;
+  margin-top: 7px;
+  justify-content: space-between;
+}
+.search_user_item > a {
+  color: #666666;
+  text-decoration: none;
+}
+.search_user_item_right {
+  position: relative;
+  display: flex;
+  right: 5px;
+}
+.search_user_item_right > a {
+  width: 16px;
+  height: 16px;
+  font-size: 0px;
+  margin-right: 7px;
+}
+.search_user_body {
+  background-color: white;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.question_item {
+  width: 60px;
+  height: 60px;
+  background-color: #1d2e51;
+  position: fixed;
+  right: 40px;
+  bottom: 40px;
+  border-radius: 30px;
+}
+.question_item > svg {
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+#questiom_button.question_active .question_item > svg:nth-child(1) {
+  transform: scale(0);
+}
+#questiom_button.question_close .question_item > svg:nth-child(1) {
+  transform: scale(1);
+  transition: 0.4s;
+}
+#questiom_button.question_active .question_item > svg:nth-child(2) {
+  transform: scale(1) rotate(-90deg);
+  transition: 0.4s;
+}
+#questiom_button.question_close .question_item > svg:nth-child(2) {
+  transform: scale(0);
+}
