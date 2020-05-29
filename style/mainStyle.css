@@ -345,6 +345,7 @@ input[type="submit"] {
   margin-right: 25px;
   font-style: italic;
   max-width: 11.09px;
+  color: black;
 }
 .talk_left_article_item_sub {
   position: absolute;

@@ -34,18 +34,10 @@ window.onload = function () {
 
 function showImg() {
   const banner = document.getElementsByClassName("bannerimg_expand");
-
-  //banner[0].style.transform = "scale(1)";
-
-  banner[0].style.transition = "opacity 1s ease";
-  banner[0].style.opacity = 1;
   banner[0].style.display = "block";
 }
 function hideImg() {
   const banner = document.getElementsByClassName("bannerimg_expand");
-  //banner[0].style.transform = "scale(0)";
-  banner[0].style.opacity = 0;
-  banner[0].style.transition = "0.4s";
   banner[0].style.display = "none";
 }
 
@@ -63,10 +55,10 @@ function marking(e) {
   const mark = this.children[0];
   //console.log(this.parentElement.parentElement);
   if (this.className == "search_user_item_right_star") {
-    mark.setAttribute("src", "/source/star_on.png");
+    mark.setAttribute("src", "./source/star_on.png");
     this.className = "search_user_item_right_star_mark";
   } else {
-    mark.setAttribute("src", "/source/star.png");
+    mark.setAttribute("src", "./source/star.png");
     this.className = "search_user_item_right_star";
   }
 }
